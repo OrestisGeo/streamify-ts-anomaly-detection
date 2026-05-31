@@ -1,0 +1,18 @@
+# Core scientific stack
+numpy
+pandas
+scipy
+scikit-learn
+
+# Plotting
+matplotlib
+
+# Progress bars
+tqdm
+
+# Deep learning for the Autoencoder baseline
+tensorflow
+
+# Utilities
+joblib
+pyyaml

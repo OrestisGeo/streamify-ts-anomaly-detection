@@ -1,0 +1,67 @@
+# Python cache files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+
+# Google Colab temporary files
+/content/
+sample_data/
+
+# Virtual environments
+venv/
+env/
+.venv/
+ENV/
+
+# Environment/config files
+.env
+.env.local
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE/editor files
+.vscode/
+.idea/
+
+# Raw datasets
+# Keep large downloaded datasets out of GitHub.
+data/raw/
+*.zip
+*.tar
+*.tar.gz
+*.rar
+
+# Temporary/generated intermediate files
+data/temp/
+results/temp/
+
+# Model checkpoints and saved models
+*.h5
+*.keras
+*.pt
+*.pth
+*.ckpt
+models/
+
+# Logs
+logs/
+*.log
+.gitkeep
+
+# Large experiment artifacts
+wandb/
+mlruns/
+
+# Exported notebook files
+# Uncomment these if you do not want to track exports.
+# *.html
+# *.pdf
+
+# Keep generated datasets if they are small enough and required for submission.
+# If generated files become too large, uncomment the next line.
+# data/generated/
