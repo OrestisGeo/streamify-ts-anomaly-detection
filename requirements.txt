@@ -16,3 +16,7 @@ tensorflow
 # Utilities
 joblib
 pyyaml
+
+#SAND
+stumpy
+tslearn
