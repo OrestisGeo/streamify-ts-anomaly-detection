@@ -1,0 +1,4 @@
+path,relative_path,domain,file_name,length,anomaly_count,anomaly_ratio,missing_values,value_mean,value_std,order
+data/raw/SMD/machine-2-5.test.csv@9.out,SMD/machine-2-5.test.csv@9.out,SMD,machine-2-5.test.csv@9.out,23688,980,0.0413711583924349,0,0.0078790114826072,0.0206525429753647,1
+data/raw/OPPORTUNITY/S1-ADL3.test.csv@122.out,OPPORTUNITY/S1-ADL3.test.csv@122.out,OPPORTUNITY,S1-ADL3.test.csv@122.out,33272,1294,0.0388915604712671,0,7.607898533301275,535.6942585398654,2
+data/raw/Daphnet/S09R01E0.test.csv@8.out,Daphnet/S09R01E0.test.csv@8.out,Daphnet,S09R01E0.test.csv@8.out,9599,323,0.0336493384727575,0,1015.405250546932,127.31728532065874,3
