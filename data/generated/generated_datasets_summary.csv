@@ -1,0 +1,4 @@
+dataset_name,normality_level,n_segments,length,anomaly_count,anomaly_ratio,domains,distribution_shifts,boundary_indices,normalized_per_segment
+normality_1.csv,1,1,23688,980,0.041371158392434985,SMD,0,[],True
+normality_2.csv,2,2,56960,2274,0.039922752808988764,SMD + OPPORTUNITY,1,[23688],True
+normality_3.csv,3,3,66559,2597,0.03901801409275981,SMD + OPPORTUNITY + Daphnet,2,"[23688, 56960]",True
