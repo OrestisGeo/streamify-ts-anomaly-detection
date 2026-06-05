@@ -112,8 +112,10 @@ def run_sand_online(
     values = np.asarray(values, dtype=float)
     labels = np.asarray(labels, dtype=int)
 
-    if pattern_length <= subsequence_length:
-        raise ValueError("pattern_length must be greater than subsequence_length.")
+    if pattern_length > subsequence_length:
+        raise ValueError("pattern_length must be less than or equal to subsequence_length "
+        "for the official TSB-UAD SAND implementation."
+    )
 
     if init_length <= subsequence_length:
         raise ValueError("init_length must be greater than subsequence_length.")
