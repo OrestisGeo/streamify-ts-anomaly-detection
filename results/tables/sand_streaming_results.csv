@@ -1,0 +1,2 @@
+dataset,method,setting,roc_auc,pr_auc,precision,recall,f1,runtime_seconds,n_points,n_anomalies,anomaly_ratio
+normality_1.csv,SAND,streaming,0.6066911148817463,0.05739756511670826,0.04183673469387755,0.04183673469387755,0.04183673469387755,70.1927285194397,23688,980,0.041371158392434985
