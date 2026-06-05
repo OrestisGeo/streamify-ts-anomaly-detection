@@ -31,7 +31,14 @@ def top_k_threshold(scores, labels):
     return predictions
 
 
-def evaluate_scores(scores, labels, method_name, dataset_name, runtime_seconds):
+def evaluate_scores(
+    scores,
+    labels,
+    method_name,
+    dataset_name,
+    runtime_seconds,
+    setting="offline",
+):
     """
     Evaluates anomaly scores against binary labels.
     Higher score means more anomalous.
@@ -60,7 +67,7 @@ def evaluate_scores(scores, labels, method_name, dataset_name, runtime_seconds):
     return {
         "dataset": dataset_name,
         "method": method_name,
-        "setting": "offline",
+        "setting": setting,
         "roc_auc": roc_auc,
         "pr_auc": pr_auc,
         "precision": precision,
