@@ -47,6 +47,7 @@ VARIANT1_BATCH_RESULTS_PATH = TABLES_DIR / "variant1_batch_results.csv"
 # Step 6 - Streaming Variant 2 results
 # Rolling-window/adaptive streaming: recent batches are used as short-term memory.
 VARIANT2_ROLLING_RESULTS_PATH = TABLES_DIR / "variant2_rolling_results.csv"
+VARIANT2_SELECTIVE_FINETUNE_AE_RESULTS_PATH = (TABLES_DIR / "variant2_selective_finetune_autoencoder_results.csv")
 
 
 # Combined result tables

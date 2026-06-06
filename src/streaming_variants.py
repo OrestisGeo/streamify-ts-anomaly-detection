@@ -357,3 +357,147 @@ def run_online_finetune_autoencoder_streaming(
     runtime = time.time() - start_time
 
     return all_scores, runtime
+
+
+def run_selective_finetune_autoencoder_streaming(
+    values,
+    batch_size=5000,
+    window_size=100,
+    init_batches=1,
+    initial_epochs=10,
+    finetune_epochs=1,
+    batch_size_training=256,
+    normal_fraction=0.8,
+    random_state=42,
+):
+    """
+    Variant 2 alternative for Dense Autoencoder:
+    selective online fine-tuning streaming adaptation.
+
+    The model is first trained on an initial part of the stream.
+    Then, for each new batch:
+    - anomaly scores are computed using the current model
+    - windows with the lowest reconstruction errors are selected
+    - the model is fine-tuned only on these likely-normal windows
+
+    This reduces the risk of adapting the model to anomalous patterns.
+    """
+
+    start_time = time.time()
+
+    values = np.asarray(values, dtype=float)
+
+    np.random.seed(random_state)
+    tf.random.set_seed(random_state)
+
+    all_scores = np.full(len(values), np.nan)
+
+    init_size = init_batches * batch_size
+    init_size = min(init_size, len(values))
+
+    if init_size < window_size:
+        raise ValueError("Initial training segment is shorter than window_size.")
+
+    if not 0 < normal_fraction <= 1:
+        raise ValueError("normal_fraction must be in the interval (0, 1].")
+
+    # Initial training segment
+    init_values = values[:init_size]
+    init_windows = create_sliding_windows(init_values, window_size=window_size)
+
+    model = build_dense_autoencoder(input_dim=window_size)
+
+    model.fit(
+        init_windows,
+        init_windows,
+        epochs=initial_epochs,
+        batch_size=batch_size_training,
+        validation_split=0.1,
+        verbose=0,
+    )
+
+    # Score the initial segment
+    init_reconstructed = model.predict(
+        init_windows,
+        batch_size=batch_size_training,
+        verbose=0,
+    )
+
+    init_window_scores = np.mean(
+        (init_windows - init_reconstructed) ** 2,
+        axis=1,
+    )
+
+    init_point_scores = window_scores_to_point_scores(
+        window_scores=init_window_scores,
+        series_length=len(init_values),
+        window_size=window_size,
+    )
+
+    all_scores[:init_size] = init_point_scores
+
+    # Process the rest of the stream batch by batch
+    for start in range(init_size, len(values), batch_size):
+        end = min(start + batch_size, len(values))
+        batch_values = values[start:end]
+
+        if len(batch_values) < window_size:
+            all_scores[start:end] = np.nanmin(all_scores)
+            continue
+
+        batch_windows = create_sliding_windows(
+            batch_values,
+            window_size=window_size,
+        )
+
+        # Score current batch before updating the model
+        reconstructed = model.predict(
+            batch_windows,
+            batch_size=batch_size_training,
+            verbose=0,
+        )
+
+        batch_window_scores = np.mean(
+            (batch_windows - reconstructed) ** 2,
+            axis=1,
+        )
+
+        batch_point_scores = window_scores_to_point_scores(
+            window_scores=batch_window_scores,
+            series_length=len(batch_values),
+            window_size=window_size,
+        )
+
+        all_scores[start:end] = batch_point_scores
+
+        # Select likely-normal windows for fine-tuning.
+        # We keep the windows with the lowest reconstruction errors.
+        threshold = np.quantile(batch_window_scores, normal_fraction)
+
+        likely_normal_mask = batch_window_scores <= threshold
+        selected_windows = batch_windows[likely_normal_mask]
+
+        # Safety fallback
+        if len(selected_windows) == 0:
+            selected_windows = batch_windows
+
+        # Fine-tune only on likely-normal windows
+        model.fit(
+            selected_windows,
+            selected_windows,
+            epochs=finetune_epochs,
+            batch_size=batch_size_training,
+            verbose=0,
+        )
+
+    finite_mask = np.isfinite(all_scores)
+
+    if finite_mask.any():
+        min_score = np.nanmin(all_scores)
+        all_scores[~finite_mask] = min_score
+    else:
+        all_scores[:] = 0.0
+
+    runtime = time.time() - start_time
+
+    return all_scores, runtime
