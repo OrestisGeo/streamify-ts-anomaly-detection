@@ -1,0 +1,13 @@
+Dataset,AE Variant,ROC-AUC,PR-AUC,F1,Accuracy,Runtime (s)
+Normality 1,Dense Autoencoder,0.841,0.209,0.25,0.9379,5.0102
+Normality 1,Batch Dense Autoencoder,0.8373,0.2148,0.2786,0.9403,15.1045
+Normality 1,Rolling Dense Autoencoder,0.8399,0.2063,0.2602,0.9388,19.0074
+Normality 1,Online Fine-tuning Dense Autoencoder,0.8368,0.2198,0.2786,0.9403,5.4231
+Normality 2,Dense Autoencoder,0.4723,0.0696,0.1605,0.933,9.7211
+Normality 2,Batch Dense Autoencoder,0.5252,0.071,0.1636,0.9332,36.4265
+Normality 2,Rolling Dense Autoencoder,0.4847,0.0687,0.1689,0.9336,50.019
+Normality 2,Online Fine-tuning Dense Autoencoder,0.4739,0.065,0.1332,0.9308,8.2918
+Normality 3,Dense Autoencoder,0.5016,0.0723,0.1521,0.9338,11.3845
+Normality 3,Batch Dense Autoencoder,0.5375,0.0711,0.1463,0.9334,42.5389
+Normality 3,Rolling Dense Autoencoder,0.5121,0.0698,0.1548,0.934,56.7139
+Normality 3,Online Fine-tuning Dense Autoencoder,0.4928,0.0658,0.1336,0.9324,9.8

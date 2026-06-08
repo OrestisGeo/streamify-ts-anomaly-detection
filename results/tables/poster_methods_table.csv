@@ -1,0 +1,9 @@
+Method,Type,Setting,Adaptation
+Isolation Forest,Classical ML,Offline,Full generated dataset is available
+Dense Autoencoder,Neural reconstruction,Offline,Trained on all sliding windows
+SAND,Streaming time-series method,Streaming baseline,Official online implementation
+Batch Isolation Forest,Classical ML,Streaming Variant 1,Each batch is processed independently
+Batch Dense Autoencoder,Neural reconstruction,Streaming Variant 1,Each batch is processed independently
+Rolling Isolation Forest,Classical ML,Streaming Variant 2,Current batch + recent history
+Rolling Dense Autoencoder,Neural reconstruction,Streaming Variant 2,Current batch + recent history
+Online Fine-tuning Dense Autoencoder,Neural reconstruction,Additional AE variant,Initial training + incremental fine-tuning

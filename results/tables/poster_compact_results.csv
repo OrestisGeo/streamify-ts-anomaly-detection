@@ -1,0 +1,16 @@
+Dataset,Method,PR-AUC,F1,Accuracy,Runtime (s)
+Normality 1,SAND,0.0574,0.0418,0.9207,70.1927
+Normality 1,Batch Dense Autoencoder,0.2148,0.2786,0.9403,15.1045
+Normality 1,Batch Isolation Forest,0.4254,0.4939,0.9581,1.409
+Normality 1,Rolling Dense Autoencoder,0.2063,0.2602,0.9388,19.0074
+Normality 1,Rolling Isolation Forest,0.5129,0.5969,0.9666,1.8067
+Normality 2,SAND,0.0472,0.0616,0.9251,131.664
+Normality 2,Batch Dense Autoencoder,0.071,0.1636,0.9332,36.4265
+Normality 2,Batch Isolation Forest,0.0968,0.2318,0.9387,4.5344
+Normality 2,Rolling Dense Autoencoder,0.0687,0.1689,0.9336,50.019
+Normality 2,Rolling Isolation Forest,0.159,0.263,0.9412,5.0456
+Normality 3,SAND,0.0458,0.0216,0.9236,178.5287
+Normality 3,Batch Dense Autoencoder,0.0711,0.1463,0.9334,42.5389
+Normality 3,Batch Isolation Forest,0.0937,0.211,0.9384,3.8992
+Normality 3,Rolling Dense Autoencoder,0.0698,0.1548,0.934,56.7139
+Normality 3,Rolling Isolation Forest,0.146,0.2318,0.9401,4.8618

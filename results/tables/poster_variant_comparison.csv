@@ -1,0 +1,7 @@
+Dataset,Base Method,Variant 1 Accuracy,Variant 2 Accuracy,Variant 1 F1,Variant 2 F1,Variant 1 PR-AUC,Variant 2 PR-AUC,Variant 1 Runtime (s),Variant 2 Runtime (s),ΔPR-AUC,ΔF1,ΔAccuracy,ΔRuntime (s)
+Normality 1,Dense Autoencoder,0.9403,0.9388,0.2786,0.2602,0.2148,0.2063,15.1045,19.0074,-0.0085,-0.0184,-0.0015,3.9
+Normality 1,Isolation Forest,0.9581,0.9666,0.4939,0.5969,0.4254,0.5129,1.409,1.8067,0.0875,0.103,0.0085,0.4
+Normality 2,Dense Autoencoder,0.9332,0.9336,0.1636,0.1689,0.071,0.0687,36.4265,50.019,-0.0023,0.0053,0.0004,13.59
+Normality 2,Isolation Forest,0.9387,0.9412,0.2318,0.263,0.0968,0.159,4.5344,5.0456,0.0622,0.0312,0.0025,0.51
+Normality 3,Dense Autoencoder,0.9334,0.934,0.1463,0.1548,0.0711,0.0698,42.5389,56.7139,-0.0013,0.0085,0.0006,14.18
+Normality 3,Isolation Forest,0.9384,0.9401,0.211,0.2318,0.0937,0.146,3.8992,4.8618,0.0523,0.0208,0.0017,0.96
