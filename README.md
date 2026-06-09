@@ -1,101 +1,125 @@
-# Streamify Time-Series Anomaly Detection Methods
+# Streamify Time-Series Anomaly Detection
 
 Project #2 for the course **Mining of Massive Datasets**.
 
-This project studies anomaly detection methods for time series in both **offline** and **streaming** settings. The experiments use the **TSB-UAD** benchmark dataset and create new streaming-like datasets by concatenating time series from different domains. The goal is to examine how anomaly detection methods behave when the definition of "normal" changes over time due to distribution shifts.
+This project studies time-series anomaly detection in both **offline** and **streaming-like** settings. The experiments use the public **TSB-UAD** benchmark and construct three generated datasets by concatenating time series from different domains. The main goal is to examine how anomaly detection methods behave when the normal behaviour of the stream changes over time because of **distribution shifts**.
 
 ---
 
-## Project Summary
+## Main idea
 
-The project follows these main steps:
+The project compares:
 
-1. Use the public TSB-UAD dataset.
-2. Select time series from different domains.
-3. Generate new datasets with different normality levels:
-   - **Normality 1**: one time series.
-   - **Normality 2**: two concatenated time series from different domains.
-   - **Normality 3**: three concatenated time series from different domains.
-4. Run two offline anomaly detection baselines:
-   - Isolation Forest.
-   - Dense Autoencoder.
-5. Run **SAND** as the streaming baseline.
-6. Adapt the offline methods to streaming settings:
-   - Variant 1: naive batch streaming.
-   - Variant 2: rolling-window / adaptive streaming.
-   - Additional Autoencoder experiments: online fine-tuning and selective online fine-tuning.
-7. Compare all methods using anomaly detection metrics and runtime.
+1. **Offline baselines** that have access to the full time series.
+2. **SAND**, used as an online/streaming baseline.
+3. **Variant 1: Batch streaming**, where each incoming stream batch is processed independently.
+4. **Variant 2: Rolling-window streaming**, where each incoming stream batch is processed together with recent historical batches.
 
+The final comparison focuses on **PR-AUC**, **F1-score**, **Accuracy**, and **Runtime**. Accuracy is reported for completeness, but the most useful metrics for anomaly detection are PR-AUC and F1 because the datasets are highly imbalanced.
 
 ---
 
-## Dataset Setup
-
-The raw TSB-UAD dataset is **not included in the GitHub repository**, because it is too large for normal Git tracking.
-
-To reproduce the full workflow, download and unzip the TSB-UAD public dataset, then place it under:
+## Repository structure
 
 ```text
-data/raw/
+streamify-ts-anomaly-detection/
+├── data/
+│   ├── raw/                    # raw TSB-UAD dataset, not committed
+│   └── generated/              # generated Normality datasets
+├── external/                   # external repositories cloned during execution, not committed
+├── notebooks/
+│   └── project2_main.ipynb     # main notebook
+├── results/
+│   ├── tables/                 # CSV result tables
+│   └── plots/                  # generated plots
+├── src/
+│   ├── data_loading.py
+│   ├── dataset_generation.py
+│   ├── dataset_inventory.py
+│   ├── evaluation.py
+│   ├── offline_methods.py
+│   ├── paths.py
+│   ├── sand_baseline.py
+│   └── streaming_variants.py
+├── requirements.txt
+├── .gitignore
+└── README.md
 ```
 
-The expected structure is that domain folders are directly under `data/raw/`, for example:
+---
+
+## How to run the notebook
+
+The main notebook is:
 
 ```text
-data/raw/
-??? KDD21/
-??? NASA-MSL/
-??? SMD/
-??? OPPORTUNITY/
-??? Daphnet/
-??? ...
+notebooks/project2_main.ipynb
 ```
 
-The time-series files are `.out` files. Each file is read as a univariate time series with point-level anomaly labels.
+The notebook is designed so that expensive experiments are controlled by execution flags. This allows the evaluator to either:
 
-### Option A � Local / Colab runtime dataset
+- load the already generated datasets and result CSV files, or
+- recompute selected parts of the project from the raw dataset.
 
-Place the unzipped dataset directly under:
+---
 
-```text
-data/raw/
-```
+## Recommended run for evaluation
 
-Then keep this notebook flag as:
+For a normal review of the project, the recommended option is to open the notebook and run it with all expensive computation flags set to `False`.
+
+In the notebook, use:
 
 ```python
 USE_GOOGLE_DRIVE_DATA = False
+
+RUN_BUILD_INVENTORY = False
+RUN_GENERATE_NORMALITIES = False
+RUN_OFFLINE_BASELINES = False
+RUN_SAND_BASELINE = False
+RUN_VARIANT1_BATCH = False
+RUN_VARIANT2_ROLLING = False
+RUN_VARIANT2_FINETUNE_AE = False
+RUN_VARIANT2_SELECTIVE_FINETUNE_AE = False
 ```
 
-This is the default option.
-
-### Option B � Google Drive dataset
-
-If the unzipped dataset is stored in Google Drive, set:
-
-```python
-USE_GOOGLE_DRIVE_DATA = True
-```
-
-and update:
-
-```python
-GOOGLE_DRIVE_DATASET_DIR = "your_drive_path_to_tsb_uad_dataset"
-```
-
-The notebook will mount Google Drive and create a symbolic link:
+With these values, the notebook loads existing files from:
 
 ```text
-data/raw/ -> GOOGLE_DRIVE_DATASET_DIR
+data/generated/
+results/tables/
+results/plots/
 ```
 
-This avoids copying the full raw dataset into the Colab runtime.
+This is the fastest way to inspect the workflow, the tables, and the final plots without rerunning the expensive experiments.
 
 ---
 
-## Installation
+## Running in Google Colab
 
-In Google Colab or a local environment, install the dependencies with:
+A typical Colab workflow is:
+
+1. Clone the repository.
+2. Install the dependencies.
+3. Open and run `notebooks/project2_main.ipynb`.
+
+Example setup:
+
+```python
+from pathlib import Path
+
+username = "OrestisGeo"
+repo = "streamify-ts-anomaly-detection"
+repo_dir = Path(repo)
+
+if not repo_dir.exists():
+    !git clone https://github.com/{username}/{repo}.git
+else:
+    print(f"Repository already exists: {repo}")
+
+%cd {repo}
+```
+
+Install the required packages:
 
 ```python
 %pip install -r requirements.txt
@@ -115,94 +139,95 @@ stumpy
 tslearn
 ```
 
-The `stumpy` and `tslearn` packages are needed for the official SAND implementation.
+The packages `stumpy` and `tslearn` are needed for the SAND implementation.
 
 ---
 
-## Running in Google Colab
+## Dataset setup
 
-Open the notebook:
+The raw TSB-UAD dataset is **not included in the repository**, because it is too large for normal Git tracking.
+
+To recompute the project from scratch, download and unzip the public TSB-UAD dataset and place the domain folders under:
 
 ```text
-notebooks/project2_main.ipynb
+data/raw/
 ```
 
-If the repository is private, the first setup cell uses a GitHub token through `getpass`, so the token is not stored inside the notebook.
+Expected structure:
 
-The notebook is organized so that expensive computations are controlled by execution flags.
+```text
+data/raw/
+├── KDD21/
+├── NASA-MSL/
+├── SMD/
+├── OPPORTUNITY/
+├── Daphnet/
+└── ...
+```
 
-Default recommended flags:
+The `.out` files are read as univariate time series with point-level anomaly labels.
+
+### Option A: local or Colab runtime dataset
+
+Place the unzipped dataset directly under:
+
+```text
+data/raw/
+```
+
+and keep:
 
 ```python
 USE_GOOGLE_DRIVE_DATA = False
-
-RUN_BUILD_INVENTORY = False
-RUN_GENERATE_NORMALITIES = False
-RUN_OFFLINE_BASELINES = False
-RUN_SAND_BASELINE = False
-RUN_VARIANT1_BATCH = False
-RUN_VARIANT2_ROLLING = False
-RUN_VARIANT2_FINETUNE_AE = False
-RUN_VARIANT2_SELECTIVE_FINETUNE_AE = False
 ```
 
-With these flags set to `False`, the notebook loads existing generated datasets and result CSV files instead of recomputing everything.
+### Option B: Google Drive dataset
 
-To recompute a specific part, set only the relevant flag to `True`.
-
----
-
-## Reproducing from Scratch
-
-To fully reproduce all results from the raw dataset:
-
-1. Place the full unzipped TSB-UAD dataset under `data/raw/`.
-2. Set the required flags to `True` in the notebook:
+If the dataset is stored in Google Drive, set:
 
 ```python
-RUN_BUILD_INVENTORY = True
-RUN_GENERATE_NORMALITIES = True
-RUN_OFFLINE_BASELINES = True
-RUN_SAND_BASELINE = True
-RUN_VARIANT1_BATCH = True
-RUN_VARIANT2_ROLLING = True
-RUN_VARIANT2_FINETUNE_AE = True
-RUN_VARIANT2_SELECTIVE_FINETUNE_AE = True
+USE_GOOGLE_DRIVE_DATA = True
 ```
 
-3. Run the notebook from top to bottom.
+and update:
 
-For normal use, it is better to keep the flags `False` and load the already-created CSV files.
+```python
+GOOGLE_DRIVE_DATASET_DIR = "your_drive_path_to_tsb_uad_dataset"
+```
+
+The notebook mounts Google Drive and creates a symbolic link:
+
+```text
+data/raw/ -> GOOGLE_DRIVE_DATASET_DIR
+```
+
+This avoids copying the full raw dataset into the Colab runtime.
 
 ---
 
-## Generated Datasets
+## Generated Normality datasets
 
-The selected time series are saved in:
+The notebook generates three streaming-like datasets:
 
-```text
-results/tables/selected_series.csv
-```
+| Dataset | Domains | Length | Anomalies | Anomaly ratio | Distribution shifts |
+|---|---|---:|---:|---:|---:|
+| Normality 1 | SMD | 23,688 | 980 | 4.14% | 0 |
+| Normality 2 | SMD + OPPORTUNITY | 56,960 | 2,274 | 3.99% | 1 |
+| Normality 3 | SMD + OPPORTUNITY + Daphnet | 66,559 | 2,597 | 3.90% | 2 |
 
-The generated Normality datasets are saved in:
+A distribution shift occurs when the stream moves from one domain to another. In this project, this means that the normal behaviour of the time series changes over time.
+
+Generated datasets are saved in:
 
 ```text
 data/generated/
-??? normality_1.csv
-??? normality_2.csv
-??? normality_3.csv
-??? generated_datasets_summary.csv
+├── normality_1.csv
+├── normality_2.csv
+├── normality_3.csv
+└── generated_datasets_summary.csv
 ```
 
-The generated datasets follow this structure:
-
-| Dataset | Description | Distribution shifts |
-|---|---|---:|
-| `normality_1.csv` | one selected time series | 0 |
-| `normality_2.csv` | first + second selected time series | 1 |
-| `normality_3.csv` | first + second + third selected time series | 2 |
-
-Each generated dataset includes:
+Each generated dataset contains:
 
 ```text
 value
@@ -222,26 +247,24 @@ time_index
 
 The offline baselines are:
 
-1. **Isolation Forest**
-2. **Dense Autoencoder**
+- **Isolation Forest**
+- **Dense Autoencoder**
 
-Both methods are applied to sliding windows generated from the complete time series. This is still an offline setting, because the full dataset is available before scoring.
+Both methods use sliding windows of size 100. They are considered offline methods because the full dataset is available before scoring.
 
-### SAND streaming baseline
+### SAND baseline
 
-SAND is used through the official implementation from the TSB-UAD repository:
+SAND is used as the streaming/online baseline through the official TSB-UAD implementation:
 
 ```text
 https://github.com/TheDatumOrg/TSB-UAD
 ```
 
-During notebook execution, the repository is cloned under:
+During execution, the repository is cloned under:
 
 ```text
 external/TSB-UAD/
 ```
-
-The `external/` folder is ignored by Git and should not be committed.
 
 The local wrapper is:
 
@@ -249,107 +272,213 @@ The local wrapper is:
 src/sand_baseline.py
 ```
 
-It loads the official SAND class, runs SAND in online mode, aligns the anomaly scores with point-level labels, and evaluates the results.
+### Variant 1: Batch streaming
 
-### Streaming Variant 1 � Naive batch streaming
+Variant 1 adapts the offline methods to a simple batch-wise streaming setting.
 
-In Variant 1, the offline methods are applied independently to each incoming batch:
+Each stream batch is processed independently:
 
 ```text
 current batch -> fit/score method -> next batch
 ```
 
-There is no memory from previous batches.
+No information from previous batches is used.
 
 Implemented methods:
 
-- Batch Isolation Forest.
-- Batch Dense Autoencoder.
+- Batch Isolation Forest
+- Batch Dense Autoencoder
 
-### Streaming Variant 2 � Rolling-window streaming
+### Variant 2: Rolling-window streaming
 
-In Variant 2, each batch is processed together with a short recent history:
+Variant 2 uses a short recent history when processing each incoming batch:
 
 ```text
-recent previous batches + current batch -> fit/score method
+previous batches + current batch -> fit/score method
 ```
 
-Only the scores for the current batch are kept.
+Only the scores that correspond to the current batch are kept for evaluation.
 
 Implemented methods:
 
-- Rolling Isolation Forest.
-- Rolling Dense Autoencoder.
+- Rolling Isolation Forest
+- Rolling Dense Autoencoder
 
-### Additional Autoencoder variants
+In the notebook, the stream batch size is defined inside the Variant 1 and Variant 2 sections as `STREAM_BATCH_SIZE`, and the input sliding-window size is defined as `WINDOW_SIZE = 100`.
 
-Two additional Dense Autoencoder streaming adaptations were also tested:
+### Optional Autoencoder experiments
 
-1. **Online Fine-tuning Dense Autoencoder**
-   - The model is initially trained on the first part of the stream.
-   - For each new batch, it scores the batch and then fine-tunes on it.
+The notebook also contains optional Autoencoder adaptation cells:
 
-2. **Selective Fine-tuning Dense Autoencoder**
-   - Similar to online fine-tuning.
-   - However, it fine-tunes only on windows with low reconstruction error, which are treated as more likely normal.
+- Online Fine-tuning Dense Autoencoder
+- Selective Online Fine-tuning Dense Autoencoder
 
-These variants are included as additional experiments and saved in separate result files.
+These are kept as additional experiments. They are not required for reproducing the main Variant 1 vs Variant 2 comparison and can remain disabled:
+
+```python
+RUN_VARIANT2_FINETUNE_AE = False
+RUN_VARIANT2_SELECTIVE_FINETUNE_AE = False
+```
 
 ---
 
 ## Evaluation
 
-The methods are evaluated using:
+Each method produces an anomaly score for every time point. Higher scores indicate points that are more likely to be anomalous.
+
+The notebook computes:
 
 | Metric | Meaning |
 |---|---|
-| ROC-AUC | General ranking quality between normal and anomaly points |
-| PR-AUC | More informative under class imbalance |
-| F1-score | Binary anomaly detection quality after thresholding |
+| ROC-AUC | Overall ranking quality between normal and anomalous points |
+| PR-AUC | Ranking quality focused on the anomaly class |
+| F1-score | Binary detection quality after thresholding |
+| Accuracy | Secondary metric, included for completeness |
 | Runtime | Execution time in seconds |
 
-For F1 evaluation, the project uses a **top-k thresholding strategy**, where `k` is the number of true anomalies in the dataset. The `k` highest anomaly scores are classified as anomalies. Because the number of predicted anomalies equals the number of true anomalies, precision, recall, and F1 can become numerically equal.
+For F1-score and Accuracy, the notebook uses **top-k thresholding**:
 
-Accuracy is not used as the main metric because anomaly detection datasets are highly imbalanced. A model that predicts every point as normal could have high accuracy while detecting no anomalies.
+```text
+1. Rank all anomaly scores from highest to lowest.
+2. Label the top k points as anomalies.
+3. Set k equal to the true number of anomalies in the dataset.
+```
+
+This makes all methods predict the same number of anomalous points and allows a fair comparison of their ranked anomaly scores.
 
 ---
 
-## Result Files
+## Reproducing the main results from scratch
 
-The main result files are saved under:
+To recompute the main results from the raw TSB-UAD dataset:
+
+1. Place the raw TSB-UAD dataset under `data/raw/`, or configure Google Drive access.
+2. Set the following flags:
+
+```python
+RUN_BUILD_INVENTORY = True
+RUN_GENERATE_NORMALITIES = True
+RUN_OFFLINE_BASELINES = True
+RUN_SAND_BASELINE = True
+RUN_VARIANT1_BATCH = True
+RUN_VARIANT2_ROLLING = True
+RUN_VARIANT2_FINETUNE_AE = False
+RUN_VARIANT2_SELECTIVE_FINETUNE_AE = False
+```
+
+3. Run the notebook from top to bottom.
+
+This recomputes the dataset selection, the generated Normality datasets, the offline baselines, SAND, and the two main streaming variants.
+
+---
+
+## Rerunning only Variant 1 and Variant 2
+
+If the generated datasets and baseline results already exist, and only the streaming variants need to be recomputed, use:
+
+```python
+RUN_BUILD_INVENTORY = False
+RUN_GENERATE_NORMALITIES = False
+RUN_OFFLINE_BASELINES = False
+RUN_SAND_BASELINE = False
+RUN_VARIANT1_BATCH = True
+RUN_VARIANT2_ROLLING = True
+RUN_VARIANT2_FINETUNE_AE = False
+RUN_VARIANT2_SELECTIVE_FINETUNE_AE = False
+```
+
+Then run only these notebook sections:
+
+```text
+Step 6 - Variant 1: Naive batch streaming
+Step 7 - Variant 2: Rolling-window streaming
+Final evaluation table
+Poster result tables
+Poster plots
+```
+
+Do not run the optional fine-tuning or selective fine-tuning cells unless those additional experiments are needed.
+
+---
+
+## Result files
+
+The main tables are saved under:
 
 ```text
 results/tables/
 ```
 
-Important files:
+Important result files:
 
 ```text
-dataset_inventory.csv
-domain_summary.csv
-dataset_candidates.csv
-candidate_domain_summary.csv
-selected_series.csv
-
 offline_baseline_results.csv
 sand_streaming_results.csv
 variant1_batch_results.csv
 variant2_rolling_results.csv
-variant2_finetune_autoencoder_results.csv
-variant2_selective_finetune_autoencoder_results.csv
-
-all_baseline_results.csv
-all_streaming_results.csv
 all_results.csv
+poster_main_results.csv
+poster_variant_comparison.csv
+poster_best_methods.csv
+poster_compact_results.csv
 ```
 
-The exact set of generated files may depend on which experiments have been run.
+Optional Autoencoder experiment files may also be created if their flags are enabled:
+
+```text
+variant2_finetune_autoencoder_results.csv
+variant2_selective_finetune_autoencoder_results.csv
+poster_ae_variants.csv
+```
+
+The poster plots are saved under:
+
+```text
+results/plots/
+```
+
+Important plot files:
+
+```text
+poster_pr_auc_comparison.png
+poster_f1_comparison.png
+poster_accuracy_comparison.png
+poster_runtime_comparison.png
+```
+
+Depending on the final poster layout, the accuracy plot may be omitted and Accuracy may instead be shown inside the result tables.
 
 ---
 
-## Git / Version Control Notes
+## Exporting the notebook to HTML
 
-The following folders/files should not be committed:
+If an HTML version of the notebook is required, run:
+
+```bash
+jupyter nbconvert --to html notebooks/project2_main.ipynb
+```
+
+This creates:
+
+```text
+notebooks/project2_main.html
+```
+
+The HTML file is a static version of the notebook that includes the code, markdown text, output tables, and plots.
+
+In Google Colab, the same command can be executed in a code cell:
+
+```python
+!jupyter nbconvert --to html notebooks/project2_main.ipynb
+```
+
+Before exporting, it is recommended to run the notebook once so that the output cells are saved.
+
+---
+
+## Git and version control notes
+
+The following folders and files should not be committed:
 
 ```text
 data/raw/
@@ -362,79 +491,6 @@ __pycache__/
 
 These are excluded through `.gitignore`.
 
-Raw datasets should stay outside GitHub. Generated datasets and result tables can be committed if their size is reasonable and they are needed for reproducibility.
+The raw dataset should remain outside GitHub. Generated datasets, result tables, and final plots can be committed if they are needed for reproducibility and their size is reasonable.
 
----
-
-## Typical Workflow
-
-### Normal notebook use
-
-Use the existing generated files and result tables:
-
-```python
-USE_GOOGLE_DRIVE_DATA = False
-
-RUN_BUILD_INVENTORY = False
-RUN_GENERATE_NORMALITIES = False
-RUN_OFFLINE_BASELINES = False
-RUN_SAND_BASELINE = False
-RUN_VARIANT1_BATCH = False
-RUN_VARIANT2_ROLLING = False
-RUN_VARIANT2_FINETUNE_AE = False
-RUN_VARIANT2_SELECTIVE_FINETUNE_AE = False
-```
-
-Then run all cells.
-
-### Recompute one experiment
-
-For example, to rerun only SAND:
-
-```python
-RUN_SAND_BASELINE = True
-```
-
-Run the SAND section, then set it back to `False`.
-
-### Save new results
-
-After generating new result CSV files in Colab:
-
-```python
-!git status
-!git add results/tables/<new_result_file>.csv
-!git commit -m "Add new experiment results"
-!git push
-```
-
-If the notebook was saved directly to GitHub through Colab, run before committing:
-
-```python
-!git pull --rebase origin main
-```
-
----
-
-## Main Notebook
-
-The main notebook is:
-
-```text
-notebooks/project2_main.ipynb
-```
-
-It contains:
-
-1. Setup.
-2. Dataset loading configuration.
-3. Dataset inventory and time-series selection.
-4. Normality dataset generation.
-5. Offline baselines.
-6. SAND streaming baseline.
-7. Streaming Variant 1.
-8. Streaming Variant 2.
-9. Additional Autoencoder experiments.
-10. Result comparison.
-
----
+Do not store GitHub tokens, passwords, or personal credentials inside notebooks or source files.
